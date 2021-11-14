@@ -14,22 +14,22 @@ def send_socket(data):
     try:
       ipaddress.ip_address(data[0])
     except ValueError:
-        return f"Input error: {data[0]}"
+        return f"{data[0]},{int(data[1])},Input error target_ip={data[0]}"
 
     try:
         int(data[1])
         if int(data[1]) > 65535:
             raise ValueError
     except ValueError:
-        return f"Input error: {data[1]}"
+        return f"{data[0]},{data[1]},Input error port={data[1]}"
 
     # NOTE: TCP-> SOCK_STREAM / UDP -> SOCK_DGRAM
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
         return_code = s.connect_ex((data[0], int(data[1])))
         if return_code == 0:
-            return f"TO: {data[0]} Port: {int(data[1])} MSG: open!"
+            return f"{data[0]},{int(data[1])},OK"
         else:
-            return f"TO: {data[0]} Port: {int(data[1])} MSG: not open!"
+            return f"{data[0]},{int(data[1])},NG"
 
 
 @click.command()
@@ -62,6 +62,7 @@ def cli(target_host, ports, csv):
         for i in ports:
             data.append([target_host,int(i)])
     print("==================================================")
+    print("target_ip,port,msg")
     with concurrent.futures.ProcessPoolExecutor(max_workers=100) as excuter:
         results = excuter.map(send_socket, data)
         [print(res) for res in list(results)]

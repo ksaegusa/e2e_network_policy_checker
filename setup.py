@@ -18,5 +18,5 @@ setup(
     'Operating System :: Microsoft :: Windows',
     'Programming Language :: Python',
   ],
-  setup_requires=["click"],
+  setup_requires=["click","streamlit"],
 )
