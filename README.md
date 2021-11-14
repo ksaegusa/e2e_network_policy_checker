@@ -1,7 +1,6 @@
 # e2e_network_policy_checker
 E2Eの通信テストで実施するツール
 
-## port_scanner
 ### 使い方
 `e2e-network-policy-checker`コマンドを実行することで対象のIPへPortスキャンを実施できる。
 
@@ -25,6 +24,7 @@ Complete!
 #### CSVファイルを用意して実施
 `e2e-network-policy-checker --csv sample.csv`
 
+`sample.csv`
 ```sample.csv
 target_ip,port
 192.168.1.1,80
@@ -34,3 +34,6 @@ target_ip,port
 
 ## 注意
 自分の管理しているサーバ以外へのポートスキャンに利用しないでください。
+
+## インストール
+pip install git+https://github.com/ksaegusa/e2e_network_policy_checker.git
