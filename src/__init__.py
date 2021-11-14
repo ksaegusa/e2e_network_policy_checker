@@ -1,1 +1,0 @@
-from .e2e-network-policy-checker.main import *
