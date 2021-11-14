@@ -1,10 +1,12 @@
+import os
 import sys
-from csv import reader
+from csv import reader, writer
 import socket
 import ipaddress
 import concurrent.futures
 
 import click
+import pandas as pd
 
 def send_socket(data):
     """
@@ -14,22 +16,22 @@ def send_socket(data):
     try:
       ipaddress.ip_address(data[0])
     except ValueError:
-        return f"{data[0]},{int(data[1])},Input error target_ip={data[0]}"
+        return [f"{data[0]}",f"{int(data[1])}",f"Input error target_ip={data[0]}"]
 
     try:
         int(data[1])
         if int(data[1]) > 65535:
             raise ValueError
     except ValueError:
-        return f"{data[0]},{data[1]},Input error port={data[1]}"
+        return [f"{data[0]}",f"{data[1]}",f"Input error port={data[1]}"]
 
     # NOTE: TCP-> SOCK_STREAM / UDP -> SOCK_DGRAM
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
         return_code = s.connect_ex((data[0], int(data[1])))
         if return_code == 0:
-            return f"{data[0]},{int(data[1])},OK"
+            return [f"{data[0]}",f"{int(data[1])}","OK"]
         else:
-            return f"{data[0]},{int(data[1])},NG"
+            return [f"{data[0]}",f"{int(data[1])}","NG"]
 
 
 @click.command()
@@ -62,11 +64,32 @@ def cli(target_host, ports, csv):
         for i in ports:
             data.append([target_host,int(i)])
     print("==================================================")
-    print("target_ip,port,msg")
     with concurrent.futures.ProcessPoolExecutor(max_workers=100) as excuter:
         results = excuter.map(send_socket, data)
-        [print(res) for res in list(results)]
+        _ip,_port,_msg = list(), list(), list()
+        for res in list(results):
+            _ip.append(res[0])
+            _port.append(res[1])
+            _msg.append(res[2])
+
+        data = dict(
+            target_ip=_ip,
+            port=_port,
+            msg=_msg
+        )
+
+        df = pd.DataFrame(data=data)
+        print(df.to_string(index=False))
     print("==================================================")
+    # TODO: 作成場所は仮
+    _dir = ".tmp/"
+    if not os.path.exists(_dir):
+        # ディレクトリが存在しない場合、ディレクトリを作成する
+        os.makedirs(_dir)
+    
+    df.to_csv(_dir + "/e2e_network_policy_checker_result.csv", sep=",",index=False)
+
+    
     print("Complete!")
 
 if __name__ == "__main__":

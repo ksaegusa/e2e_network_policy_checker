@@ -1,2 +1,4 @@
-fire
+click
+pandas
 pytest
+streamlit
