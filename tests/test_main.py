@@ -1,12 +1,12 @@
-from e2e_network_policy_checker.main import run, send_socket
+from e2e_network_policy_checker.cli import cli, send_socket
 import sys 
 import os
 
 sys.path.append(os.path.abspath(os.path.dirname(os.path.abspath(__file__)) + "/../src/"))
 
 # TODO: csvのインポートのところとかテスト必要かな
-# def test_run():
-#   assert run(target_host='192.168.0.1', ports='80', csv='') == ['TO: 192.168.0.1 Port: 80 MSG: not open!']
+# def test_cli():
+#   assert cli(target_host='192.168.0.1', ports='80', csv='') == ['TO: 192.168.0.1 Port: 80 MSG: not open!']
 
 def test_send_socket():
   assert send_socket(['192.168.0.1','80']) == 'TO: 192.168.0.1 Port: 80 MSG: not open!'

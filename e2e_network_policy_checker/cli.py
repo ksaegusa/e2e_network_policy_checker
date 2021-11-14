@@ -4,7 +4,7 @@ import socket
 import ipaddress
 import concurrent.futures
 
-import fire
+import click
 
 def send_socket(data):
     """
@@ -31,8 +31,12 @@ def send_socket(data):
         else:
             return f"TO: {data[0]} Port: {int(data[1])} MSG: not open!"
 
-# TODO: csvで指定したpathの検査はできていない
-def run(target_host='', ports='80,8080', csv=''):
+
+@click.command()
+@click.option("-t","--target_host", type=str)
+@click.option("-p","--ports", type=str, default='80,8080')
+@click.option("-c","--csv", type=click.Path(exists=True, dir_okay=False))
+def cli(target_host, ports, csv):
     """
     
     """
@@ -43,7 +47,10 @@ def run(target_host='', ports='80,8080', csv=''):
             del list_of_rows[0]
             data = list_of_rows
     else:
-        ports = [int(x) for x in ports.split(',')]
+        if ',' in ports:
+            ports = [int(x) for x in ports.split(',')]
+        else:
+            ports = int(ports)
         if not target_host:
             target_host = input("Input target host name or address: ")
         try:
@@ -60,12 +67,6 @@ def run(target_host='', ports='80,8080', csv=''):
         [print(res) for res in list(results)]
     print("==================================================")
     print("Complete!")
-
-def cli():
-    """
-    
-    """
-    fire.Fire(run)
 
 if __name__ == "__main__":
     cli()
