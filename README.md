@@ -36,4 +36,6 @@ target_ip,port
 自分の管理しているサーバ以外へのポートスキャンに利用しないでください。
 
 ## インストール
+```
 pip install git+https://github.com/ksaegusa/e2e_network_policy_checker.git
+```
