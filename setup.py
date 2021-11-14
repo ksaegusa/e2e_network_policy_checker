@@ -11,7 +11,10 @@ setup(
         "e2e-network-policy-checker = src.main:cli"
       ]
     },
+    classifiers=[
+        "Programming Language :: Python :: 3",
+    ],
     install_requires = ['fire'],
-    url = "",
+    url = "https://github.com/ksaegusa/e2e_network_policy_checker.git",
     packages=find_packages(),
 )
