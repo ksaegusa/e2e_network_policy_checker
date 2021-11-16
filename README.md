@@ -9,13 +9,16 @@ E2Eの通信テストで実施するツール
 
 Input target host name or address: 192.168.1.1
 ==================================================
-TO: 192.168.1.1 Port: 80 MSG: open!
-TO: 192.168.1.1 Port: 8080 MSG: not open!
+  target_ip port msg
+192.168.1.1   80  OK
+192.168.1.1 8080  NG
 ==================================================
 Complete!
 ```
 デフォルトで検査するポートは80/8080  
 画面上へ表示のみ
+
+e2e-network-policy-checkerを実行したディレクトリに.tmpディレクトリを作成し、e2e_network_policy_checker_result.csvを生成する
 
 ### オプション
 #### オプションでIP,Portを指定

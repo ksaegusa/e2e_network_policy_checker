@@ -54,7 +54,7 @@ def cli(target_host, ports, csv):
         else:
             ports = int(ports)
         if not target_host:
-            target_host = input("Input target host name or address: ")
+            target_host = input("Input target address: ")
         try:
             ipaddress.ip_address(target_host)
         except ValueError:
