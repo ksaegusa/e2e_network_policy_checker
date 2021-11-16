@@ -33,6 +33,14 @@ def send_socket(data):
         else:
             return [f"{data[0]}",f"{int(data[1])}","NG"]
 
+def csv_export(df):
+    _dir = ".tmp"
+    if not os.path.exists(_dir):
+        # ディレクトリが存在しない場合、ディレクトリを作成する
+        os.makedirs(_dir)
+    filename = _dir + "/e2e_network_policy_checker_result.csv"
+    df.to_csv(filename, sep=",",index=False)
+    return print(f"Create -> {filename}")
 
 @click.command()
 @click.option("-t","--target_host", type=str)
@@ -81,16 +89,8 @@ def cli(target_host, ports, csv):
         df = pd.DataFrame(data=data)
         print(df.to_string(index=False))
     print("==================================================")
-    # TODO: 作成場所は仮
-    _dir = ".tmp/"
-    if not os.path.exists(_dir):
-        # ディレクトリが存在しない場合、ディレクトリを作成する
-        os.makedirs(_dir)
-    
-    df.to_csv(_dir + "/e2e_network_policy_checker_result.csv", sep=",",index=False)
 
-    
-    print("Complete!")
+    csv_export(df)
 
 if __name__ == "__main__":
     cli()
