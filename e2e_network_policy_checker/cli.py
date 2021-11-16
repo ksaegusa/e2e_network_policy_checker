@@ -57,20 +57,22 @@ def cli(target_host, ports, csv):
             del list_of_rows[0]
             data = list_of_rows
     else:
-        if ',' in ports:
-            ports = [int(x) for x in ports.split(',')]
-        else:
-            ports = int(ports)
-        if not target_host:
-            target_host = input("Input target address: ")
+        data = list()
         try:
             ipaddress.ip_address(target_host)
         except ValueError:
             print(f"Input error: {target_host}")
             sys.exit()
-        data = list()
-        for i in ports:
-            data.append([target_host,int(i)])
+        if not target_host:
+            target_host = input("Input target address: ")
+
+        if ',' in ports:
+            ports = [int(x) for x in ports.split(',')]
+            for i in ports:
+                data.append([target_host,int(i)])
+        else:
+            data.append([target_host, int(ports)])
+            
     print("==================================================")
     with concurrent.futures.ProcessPoolExecutor(max_workers=100) as excuter:
         results = excuter.map(send_socket, data)
