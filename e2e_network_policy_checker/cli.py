@@ -27,6 +27,8 @@ def send_socket(data):
 
     # NOTE: TCP-> SOCK_STREAM / UDP -> SOCK_DGRAM
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+        # TODO: cfgファイルを読み込んで作業者で変更できるようにしたい
+        s.settimeout(1)
         return_code = s.connect_ex((data[0], int(data[1])))
         if return_code == 0:
             return [f"{data[0]}",f"{int(data[1])}","OK"]
@@ -34,13 +36,40 @@ def send_socket(data):
             return [f"{data[0]}",f"{int(data[1])}","NG"]
 
 def csv_export(df):
+    # TODO: cfgファイルを読み込んで作業者で変更できるようにしたい
     _dir = ".tmp"
     if not os.path.exists(_dir):
-        # ディレクトリが存在しない場合、ディレクトリを作成する
         os.makedirs(_dir)
+    # TODO: cfgファイルを読み込んで作業者で変更できるようにしたい
     filename = _dir + "/e2e_network_policy_checker_result.csv"
     df.to_csv(filename, sep=",",index=False)
     return print(f"Create -> {filename}")
+
+def open_csv(csv):
+    with open(csv, 'r') as csv_file:
+        csv_reader = reader(csv_file)
+        list_of_rows = list(csv_reader)
+        del list_of_rows[0]
+        data = list_of_rows
+        return data
+
+def input_user(target_host, ports):
+    data = list()
+    if not target_host:
+        target_host = input("Input target address: ")
+    try:
+        ipaddress.ip_address(target_host)
+    except ValueError:
+        print(f"Input error: {target_host}")
+        sys.exit()
+
+    if ',' in ports:
+        ports = [int(x) for x in ports.split(',')]
+        for i in ports:
+            data.append([target_host,int(i)])
+    else:
+        data.append([target_host, int(ports)])
+    return data
 
 @click.command()
 @click.option("-t","--target_host", type=str)
@@ -51,28 +80,11 @@ def cli(target_host, ports, csv):
     
     """
     if csv:
-        with open(csv, 'r') as csv_file:
-            csv_reader = reader(csv_file)
-            list_of_rows = list(csv_reader)
-            del list_of_rows[0]
-            data = list_of_rows
-    else:
-        data = list()
-        try:
-            ipaddress.ip_address(target_host)
-        except ValueError:
-            print(f"Input error: {target_host}")
-            sys.exit()
-        if not target_host:
-            target_host = input("Input target address: ")
+        data = open_csv(csv)
 
-        if ',' in ports:
-            ports = [int(x) for x in ports.split(',')]
-            for i in ports:
-                data.append([target_host,int(i)])
-        else:
-            data.append([target_host, int(ports)])
-            
+    else:
+        data = input_user(target_host, ports)
+
     print("==================================================")
     with concurrent.futures.ProcessPoolExecutor(max_workers=100) as excuter:
         results = excuter.map(send_socket, data)
