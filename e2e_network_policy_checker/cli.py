@@ -88,8 +88,7 @@ def input_user(target_host, ports):
 @click.option("-t","--target_host", type=str)
 @click.option("-p","--ports", type=str, default='80,8080')
 @click.option("-c","--csv", type=click.Path(exists=True, dir_okay=False))
-@click.option("-l","--log", type=str, default='INFO')
-def cli(target_host, ports, csv, log):
+def cli(target_host, ports, csv):
     """
     
     """
