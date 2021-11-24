@@ -1,12 +1,23 @@
 import os
 import sys
-from csv import reader, writer
 import socket
 import ipaddress
 import concurrent.futures
 
 import click
 import pandas as pd
+
+from logging import basicConfig, getLogger, INFO
+from configparser import ConfigParser
+from csv import reader, writer
+
+config = ConfigParser()
+# TODO: 上書きでファイル指定できるようにする
+config.read(os.path.dirname(os.path.abspath(__file__))+'/config.ini')
+
+# TODO: ログの出力レベルをツール起動時に変更できるようにする
+basicConfig(level=INFO)
+logger = getLogger(__name__)
 
 def send_socket(data):
     """
@@ -16,6 +27,7 @@ def send_socket(data):
     try:
       ipaddress.ip_address(data[0])
     except ValueError:
+        logger.error(f"Input error target_ip={data[0]}")
         return [f"{data[0]}",f"{int(data[1])}",f"Input error target_ip={data[0]}"]
 
     try:
@@ -23,10 +35,14 @@ def send_socket(data):
         if int(data[1]) > 65535:
             raise ValueError
     except ValueError:
+        logger.error(f"Input error port={data[1]}")
         return [f"{data[0]}",f"{data[1]}",f"Input error port={data[1]}"]
 
     # NOTE: TCP-> SOCK_STREAM / UDP -> SOCK_DGRAM
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+        logger.debug(f"START: {data[0]} {int(data[1])}")
+        logger.debug(f"OPTION: timeout: {int(config['DEFAULT']['socket_timeout'])}")
+        s.settimeout(int(config['DEFAULT']['socket_timeout']))
         return_code = s.connect_ex((data[0], int(data[1])))
         if return_code == 0:
             return [f"{data[0]}",f"{int(data[1])}","OK"]
@@ -34,13 +50,39 @@ def send_socket(data):
             return [f"{data[0]}",f"{int(data[1])}","NG"]
 
 def csv_export(df):
-    _dir = ".tmp"
+    _dir = config['DEFAULT']['save_result_dir']
     if not os.path.exists(_dir):
-        # ディレクトリが存在しない場合、ディレクトリを作成する
         os.makedirs(_dir)
-    filename = _dir + "/e2e_network_policy_checker_result.csv"
+    filename = _dir + config['DEFAULT']['result_filename']
     df.to_csv(filename, sep=",",index=False)
     return print(f"Create -> {filename}")
+
+def open_csv(csv):
+    # TODO: csvのフォーマットのバリデーションチェックをする
+    with open(csv, 'r') as csv_file:
+        csv_reader = reader(csv_file)
+        list_of_rows = list(csv_reader)
+        del list_of_rows[0]
+        data = list_of_rows
+        return data
+
+def input_user(target_host, ports):
+    data = list()
+    if not target_host:
+        target_host = input("Input target address: ")
+    try:
+        ipaddress.ip_address(target_host)
+    except ValueError:
+        logger.error(f"Input error: {target_host}")
+        sys.exit()
+
+    if ',' in ports:
+        ports = [int(x) for x in ports.split(',')]
+        for i in ports:
+            data.append([target_host,int(i)])
+    else:
+        data.append([target_host, int(ports)])
+    return data
 
 @click.command()
 @click.option("-t","--target_host", type=str)
@@ -50,31 +92,16 @@ def cli(target_host, ports, csv):
     """
     
     """
+    logger.debug(f"SCRIPT START")
     if csv:
-        with open(csv, 'r') as csv_file:
-            csv_reader = reader(csv_file)
-            list_of_rows = list(csv_reader)
-            del list_of_rows[0]
-            data = list_of_rows
-    else:
-        data = list()
-        try:
-            ipaddress.ip_address(target_host)
-        except ValueError:
-            print(f"Input error: {target_host}")
-            sys.exit()
-        if not target_host:
-            target_host = input("Input target address: ")
+        data = open_csv(csv)
 
-        if ',' in ports:
-            ports = [int(x) for x in ports.split(',')]
-            for i in ports:
-                data.append([target_host,int(i)])
-        else:
-            data.append([target_host, int(ports)])
-            
+    else:
+        data = input_user(target_host, ports)
+
     print("==================================================")
-    with concurrent.futures.ProcessPoolExecutor(max_workers=100) as excuter:
+    logger.debug(f"SCRIPT START")
+    with concurrent.futures.ProcessPoolExecutor(max_workers=int(config['DEFAULT']['process_workers'])) as excuter:
         results = excuter.map(send_socket, data)
         _ip,_port,_msg = list(), list(), list()
         for res in list(results):
