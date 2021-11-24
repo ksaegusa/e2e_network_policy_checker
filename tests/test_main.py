@@ -2,7 +2,7 @@ from e2e_network_policy_checker.cli import cli, send_socket
 import sys 
 import os
 
-sys.path.append(os.path.abspath(os.path.dirname(os.path.abspath(__file__)) + "/../e2e_network_policy_checker/"))
+sys.path.append(os.path.abspath(os.path.dirname(os.path.abspath(__file__)) + "/../src/"))
 
 def test_cli():
   pass
@@ -15,10 +15,4 @@ def test_send_socket():
   assert send_socket(['192.168.0.1','0.1']) == ['192.168.0.1','0.1','Input error port=0.1']
 
 def test_csv_export():
-  pass
-
-def test_open_csv():
-  pass
-
-def test_input_user():
   pass
