@@ -34,6 +34,24 @@ target_ip,port
 192.168.1.1,443
 ```
 
+### コンフィグファイル
+コンフィグファイルを編集することでパラメータの調整が可能  
+スクリプトが格納されている場所にあるconfig.iniを編集する
+
+`config.ini`
+```
+[DEFAULT]
+socket_timeout=10
+process_workers=100
+save_result_dir=.tmp/
+result_filename=e2e_network_policy_checker_result.csv
+```
+
+socket_timeout: socketを送信した際のタイムアウト時間  
+process_workers: プロセスの並行実行数  
+save_result_dir: 実行結果のCSVを格納するディレクトリパス  
+result_filename: 実行結果のCSVファイル名  
+
 ## 注意
 自分の管理しているサーバ以外へのポートスキャンに利用しないでください。
 
